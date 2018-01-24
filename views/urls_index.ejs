@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <% include ./partials/_head %>
+</head>
+<body>
+  <header>
+    <% include ./partials/_header %>
+  </header>
+  <h1>Short Urls and Long Urls</h1>
+    <ul>
+      <% for (var prop in urlDatabase) { %>
+      <li><%= prop %> - <%= urlDatabase[prop] %></li>
+      <% }; %>
+    </ul>
+  <a href="deadlink">Shorten another URL</a>
+<footer>
+    <% include ./partials/_footer %>
+</footer>
+</body>
+</html>

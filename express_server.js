@@ -1,14 +1,16 @@
 const express = require("express");
-const app = express();
+const bcrypt = require("bcrypt")
 const cookieParser = require('cookie-parser');
+const app = express();
+
 app.use(cookieParser());
 
-const PORT = process.env.PORT || 8080; // default port 8080
+const PORT = process.env.PORT || 8080;
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.set("view engine", "ejs");
+app.set("view engine", "ejs");  //app.set vs app.use??
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -25,28 +27,66 @@ function generateRandomString() {
   return randomString;
 }
 
+
+
+//app.get("/", (req, res) => {
+//  res.end("TinyApp!");
+//});
+
 app.get("/", (req, res) => {
-  res.end("TinyApp!");
+  let templateVars = {
+    username: req.cookies["username"],
+    urlDatabase: urlDatabase
+  };
+  res.render("main", templateVars);
 });
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+app.post("/login", (req, res) => {
+  //const username = req.body.username;
+  //const password = req.body.password;
+  //console.log(username); // password);
+  res.cookie('username', req.body.username);
+  //console.log('Cookies: ', res.cookie);
+  res.redirect("/urls");
+});
+
+app.post("/logout", (req, res) => {
+  res.clearCookie('username')
+  res.redirect("/");
+});
+
 //Reads URL database
 app.get("/urls", (req, res) => {
-  res.render("urls_index", {urlDatabase}); //why curly brackets around urlDatabase? undefined in urls_index otherwise
+  let templateVars = {
+    username: req.cookies["username"],
+    urlDatabase: urlDatabase
+  };
+  //let username = req.cookies.username;
+  res.render("urls_index", templateVars); //why curly brackets around urlDatabase? undefined in urls_index otherwise
 });
 
 //Reads new URL submission page
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  let templateVars = {
+    username: req.cookies["username"],
+    shortUrl: req.params.id,
+    longUrl: urlDatabase[req.params.id]
+  };
+  res.render("urls_new", templateVars);
 });
 
 //Reads new URL page
 app.get("/urls/:id", (req, res) => {
-  let currentUrl = { shortUrl: req.params.id, longUrl: urlDatabase[req.params.id] };
-  res.render("urls_show", currentUrl);
+  let templateVars = {
+    username: req.cookies["username"],
+    shortUrl: req.params.id,
+    longUrl: urlDatabase[req.params.id]
+  };
+  res.render("urls_show", templateVars);
 });
 
 //"Posts" deletion of short URL and log URL

@@ -1,5 +1,8 @@
 const express = require("express");
 const app = express();
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
 const PORT = process.env.PORT || 8080; // default port 8080
 
 const bodyParser = require("body-parser");
@@ -45,10 +48,6 @@ app.get("/urls/:id", (req, res) => {
   let currentUrl = { shortUrl: req.params.id, longUrl: urlDatabase[req.params.id] };
   res.render("urls_show", currentUrl);
 });
-
-//app.post("/urls", (req, res) => {
-//
-//});
 
 //"Posts" deletion of short URL and log URL
 app.post("/urls/:id/delete", (req, res) => {

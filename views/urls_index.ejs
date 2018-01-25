@@ -7,13 +7,25 @@
   <header>
     <% include ./partials/_header %>
   </header>
-  <h1>Short Urls and Long Urls</h1>
-    <ul>
-      <% for (var prop in urlDatabase) { %>
-      <li><%= prop %> - <%= urlDatabase[prop] %></li>
-      <% }; %>
-    </ul>
-  <a href="deadlink">Shorten another URL</a>
+    <table>
+      <thead>
+        <tr>
+          <th>Short URL</th>
+          <th>Long URL</th>
+          <th> </th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (key in urlDatabase) {%>
+        <tr>
+          <td><%= key %></td>
+          <td><%= urlDatabase[key] %></td>
+          <td><form method="POST" action="/urls/<%= key %>/delete"><a href="/urls/<%= key %>">Edit</a><button name="button">Delete</button></form></td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+    <a href="/urls/new">Shorten another URL</a>
 <footer>
     <% include ./partials/_footer %>
 </footer>

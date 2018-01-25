@@ -7,7 +7,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs");
 
-var urlDatabase = {
+const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
   "4g8Dr2": "http://www.nationalgeographic.com",
@@ -15,48 +15,77 @@ var urlDatabase = {
 };
 
 function generateRandomString() {
-  var randomString = "";
-  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (var i = 0; i < 6; i++)
+  let randomString = "";
+  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (let i = 0; i < 6; i++)
     randomString += possible.charAt(Math.floor(Math.random() * possible.length));
   return randomString;
 }
 
 app.get("/", (req, res) => {
-  res.end("Hello!");
+  res.end("TinyApp!");
 });
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+//Reads URL database
 app.get("/urls", (req, res) => {
   res.render("urls_index", {urlDatabase}); //why curly brackets around urlDatabase? undefined in urls_index otherwise
 });
 
+//Reads new URL submission page
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+//Reads new URL page
 app.get("/urls/:id", (req, res) => {
   let currentUrl = { shortUrl: req.params.id, longUrl: urlDatabase[req.params.id] };
   res.render("urls_show", currentUrl);
 });
 
+//app.post("/urls", (req, res) => {
+//
+//});
+
+//"Posts" deletion of short URL and log URL
+app.post("/urls/:id/delete", (req, res) => {
+  console.log("req.params:", req.params);
+  console.log("urlDatabase[req.params.id] to be deleted:", urlDatabase[req.params.id]);
+  delete urlDatabase[req.params.id];
+  console.log("urlDatabase:", urlDatabase);
+  res.redirect("/urls");
+});
+
+//posts new URL to urlDatabase and redirects to /urls/"shortUrl"
 app.post("/urls", (req, res) => {
   console.log("Post parameters", req.body);  // debug statement to see POST parameters
-  let longUrl = req.body.longUrl;
-  console.log("Long URL is ", longUrl);
+  //let longUrl = req.body.longUrl;
+  console.log("Long URL is ", req.body.longUrl);
   let shortUrl = generateRandomString();
   console.log("Short URL is ", shortUrl);
   //res.send("Ok");         // Respond with 'Ok' (we will replace this)
   urlDatabase[shortUrl] = req.body.longUrl;
   console.log("updated URL Database?", urlDatabase);
+  //console.log(updatedLongUrl);
   res.redirect(`/urls/${shortUrl}`);
 });
 
+//changes long URL based on user input (but short URL stays the same)
+app.post("/urls/:id", (req, res) => {
+  console.log("changing the long URL for this req.params:", req.params);
+  console.log("urlDatabase[req.params.id] to be changed:", urlDatabase[req.params.id]);
+  console.log("updated longUrl:", req.body.longUrl);
+  urlDatabase[req.params.id] = req.body.longUrl;
+  console.log("urlDatabase:", urlDatabase);
+  res.redirect("/urls");
+});
+
+//redirects client to longUrl
 app.get("/u/:shortUrl", (req, res) => {
-  let longUrl = urlDatabase[req.params.shortUrl];
+  const longUrl = urlDatabase[req.params.shortUrl];
   res.redirect(longUrl);
 });
 

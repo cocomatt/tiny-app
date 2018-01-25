@@ -7,9 +7,14 @@
   <header>
     <% include ./partials/_header %>
   </header>
-  <h1>Long URL and its short form</h1>
-    <p><%= longUrl %> - <%= shortUrl %> </p>
-  <a href="deadlink">Shorten another URL</a>
+  <h1>The short URL and the long URL</h1>
+    <p>Short URL: <%= shortUrl %></p>
+    <form method="POST" action="/urls/<%= shortUrl %>">
+      <label for="longUrl"></label>
+      <input id="longUrl" type="text" name="longUrl" placeholder="<%= longUrl %>">
+      <input type="submit" value="Update">
+    </form>
+  <a href="/urls/new">Shorten another URL</a>
 <footer>
   <% include ./partials/_footer %>
 </footer>

@@ -7,25 +7,24 @@
   <header>
     <% include ./partials/_header %>
   </header>
-    <table>
+    <h2>Registration Confirmation</h2>
+      <p>Is the following correct?</p>
+        <table>
       <thead>
         <tr>
-          <th>Short URL</th>
-          <th>Long URL</th>
+          <th>Your email address</th>
+          <th>Your user id</th>
           <th> </th>
         </tr>
       </thead>
       <tbody>
-        <% for (let key in urlDatabase) { %>
         <tr>
-          <td><a href="/u/<%= key %>"><%= key %></a></td>
+          <td><%= key %></td>
           <td><%= urlDatabase[key] %></td>
-          <td><form method="POST" action="/urls/<%= key %>/delete"><a href="/urls/<%= key %>">Edit</a><button name="button">Delete</button></form></td>
+          <td><form method="POST" action="/urls/<%= key %>/delete"><a href="/urls/<%= key %>">Edit</a><button name="button">Change</button></form></td>
         </tr>
-        <% } %>
       </tbody>
     </table>
-    <a href="/urls/new">Shorten another URL</a>
 <footer>
     <% include ./partials/_footer %>
 </footer>

@@ -1,10 +1,13 @@
 const express = require("express");
 const app = express();
 
+const cookieParser = require('cookie-parser');
+
 const PORT = process.env.PORT || 8080;
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 
 app.set("view engine", "ejs");  //app.set vs app.use??
 
@@ -15,14 +18,9 @@ const urlDatabase = {
   "5yT2W9": "http://www.economist.com"
 };
 
-//function shortUrls(database) {
-//  for (key in database) {
-//    return database.key;
-//  };
-//};
-
 let templateVars = {
   urlDatabase: urlDatabase,
+  username: null
   //shortUrl: shortUrls(urlDatabase)
 }
 
@@ -39,29 +37,60 @@ function generateRandomString() {
   return randomString;
 }
 
-app.get("/", (reg, res) => {
-  res.end("TinyApp!");
+app.get("/", (req, res) => {
+  templateVars.username = req.cookies["username"] || null;
+  res.render("main", templateVars);
 });
 
+app.get("/register", (req, res) => {
+  templateVars.newEmail = req.body.newEmail;
+  console.log("email:", templateVars.newEmail);
+  res.render("register", templateVars);
+})
+
+app.post("/register", (req, res) => {
+  res.cookie('username', req.body.username);
+  console.log('Cookies: ', res.cookie);
+  res.redirect("/urls");
+});
+
+app.post("/login", (req, res) => {
+  //const username = req.body.username;
+  //const password = req.body.password;
+  //console.log(username); // password);
+  res.cookie('username', req.body.username);
+  //console.log('Cookies: ', res.cookie);
+  res.redirect("/urls");
+});
+
+app.post("/logout", (req, res) => {
+  res.clearCookie('username')
+  res.redirect("/");
+});
 
 //Reads URL database
 app.get("/urls", (req, res) => {
-  res.render("urls_index", {templateVars}); //why curly brackets around urlDatabase?
+  templateVars.username = req.cookies["username"] || null;
+  console.log(req.cookies["username"]);
+  res.render("urls_index", templateVars);
 });
 
 //Reads new URL submission page
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  templateVars.username = req.cookies["username"] || null;
+  res.render("urls_new", templateVars);
 });
 
 //Reads new URL page
 app.get("/urls/:id", (req, res) => {
   let shortUrl = req.params.id;
   let longUrl = urlDatabase[shortUrl];
+  templateVars.username = req.cookies["username"] || null;
+  templateVars.shortUrl = shortUrl;
+  templateVars.longUrl = longUrl;
   console.log("This is what app.get for urls/:id gives the following for urlDatabase[req.params.id]: " + urlDatabase[req.params.id] + "shortUrl: " + req.params.id);
-  res.render("urls_show", {urlDatabase, shortUrl});
+  res.render("urls_show", templateVars);
 ///////////////////////// templateVars.shortUrl = req.params.id
-
 });
 
 //"Posts" deletion of short URL and log URL

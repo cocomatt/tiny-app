@@ -1,9 +1,5 @@
 const express = require("express");
-const bcrypt = require("bcrypt")
-const cookieParser = require('cookie-parser');
 const app = express();
-
-app.use(cookieParser());
 
 const PORT = process.env.PORT || 8080;
 
@@ -19,6 +15,22 @@ const urlDatabase = {
   "5yT2W9": "http://www.economist.com"
 };
 
+//function shortUrls(database) {
+//  for (key in database) {
+//    return database.key;
+//  };
+//};
+
+let templateVars = {
+  urlDatabase: urlDatabase,
+  //shortUrl: shortUrls(urlDatabase)
+}
+
+//console.log("urlDatabase:", urlDatabase)
+console.log("@#@#@# templateVars:", templateVars);
+
+
+
 function generateRandomString() {
   let randomString = "";
   const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -27,66 +39,29 @@ function generateRandomString() {
   return randomString;
 }
 
-
-
-//app.get("/", (req, res) => {
-//  res.end("TinyApp!");
-//});
-
-app.get("/", (req, res) => {
-  let templateVars = {
-    username: req.cookies["username"],
-    urlDatabase: urlDatabase
-  };
-  res.render("main", templateVars);
+app.get("/", (reg, res) => {
+  res.end("TinyApp!");
 });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.post("/login", (req, res) => {
-  //const username = req.body.username;
-  //const password = req.body.password;
-  //console.log(username); // password);
-  res.cookie('username', req.body.username);
-  //console.log('Cookies: ', res.cookie);
-  res.redirect("/urls");
-});
-
-app.post("/logout", (req, res) => {
-  res.clearCookie('username')
-  res.redirect("/");
-});
 
 //Reads URL database
 app.get("/urls", (req, res) => {
-  let templateVars = {
-    username: req.cookies["username"],
-    urlDatabase: urlDatabase
-  };
-  //let username = req.cookies.username;
-  res.render("urls_index", templateVars); //why curly brackets around urlDatabase? undefined in urls_index otherwise
+  res.render("urls_index", {templateVars}); //why curly brackets around urlDatabase?
 });
 
 //Reads new URL submission page
 app.get("/urls/new", (req, res) => {
-  let templateVars = {
-    username: req.cookies["username"],
-    shortUrl: req.params.id,
-    longUrl: urlDatabase[req.params.id]
-  };
-  res.render("urls_new", templateVars);
+  res.render("urls_new");
 });
 
 //Reads new URL page
 app.get("/urls/:id", (req, res) => {
-  let templateVars = {
-    username: req.cookies["username"],
-    shortUrl: req.params.id,
-    longUrl: urlDatabase[req.params.id]
-  };
-  res.render("urls_show", templateVars);
+  let shortUrl = req.params.id;
+  let longUrl = urlDatabase[shortUrl];
+  console.log("This is what app.get for urls/:id gives the following for urlDatabase[req.params.id]: " + urlDatabase[req.params.id] + "shortUrl: " + req.params.id);
+  res.render("urls_show", {urlDatabase, shortUrl});
+///////////////////////// templateVars.shortUrl = req.params.id
+
 });
 
 //"Posts" deletion of short URL and log URL
@@ -98,16 +73,16 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-//posts new URL to urlDatabase and redirects to /urls/"shortUrl"
+ //posts new URL to urlDatabase and redirects to /urls/"shortUrl"
 app.post("/urls", (req, res) => {
   console.log("Post parameters", req.body);  // debug statement to see POST parameters
   //let longUrl = req.body.longUrl;
-  console.log("Long URL is ", req.body.longUrl);
+  console.log("URLS Long URL is ", req.body.longUrl);
   let shortUrl = generateRandomString();
-  console.log("Short URL is ", shortUrl);
+  console.log("URLS Short URL is ", shortUrl);
   //res.send("Ok");         // Respond with 'Ok' (we will replace this)
   urlDatabase[shortUrl] = req.body.longUrl;
-  console.log("updated URL Database?", urlDatabase);
+  console.log("URLS updated URL Database?", urlDatabase);
   //console.log(updatedLongUrl);
   res.redirect(`/urls/${shortUrl}`);
 });

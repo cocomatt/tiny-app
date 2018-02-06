@@ -14,33 +14,6 @@
 <!--            <li><a href="/about">About</a></li>  -->
         </ul>
     </div>
-
-
-    <% if (username) { %>
-        <div>
-            <p>Welcome, <%= username %> !</p>
-            <form action="/logout" method="POST"><button name="button">Logout</button></form></td>
-            </form>
-        </div>
-    <% } else { %>
-        <div>
-            <form action="/login" method="POST">
-                <label for="username-field">Username:</label>
-                <input id="username-field" name="username">
-<!--
-                <label for="password-field">Password:</label>
-                <input id="password-field" name="password" type="password">
--->
-                <input type="submit" value="Submit">
-            </form>
-<!--
-            <form action="/login" method="POST">
-                <label for="username">Enter your username:</label>
-                <input id="username" type="text" name="username" style="width: 300px">
-                <input type="submit" value="Submit">
-            </form>
--->
-        </div>
-    <% } %>
+    </div>
 </div>
 </nav>

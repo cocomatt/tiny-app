@@ -16,10 +16,10 @@
         </tr>
       </thead>
       <tbody>
-        <% for (key in urlDatabase) {%>
+        <% for (let key in templateVars.urlDatabase) { %>
         <tr>
-          <td><%= key %></td>
-          <td><%= urlDatabase[key] %></td>
+          <td><a href="/u/<%= key %>"><%= key %></a></td>
+          <td><%= templateVars.urlDatabase[key] %></td>
           <td><form method="POST" action="/urls/<%= key %>/delete"><a href="/urls/<%= key %>">Edit</a><button name="button">Delete</button></form></td>
         </tr>
         <% } %>

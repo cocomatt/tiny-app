@@ -7,23 +7,27 @@
             <span class="glyphicon glyphicon glyphicon-tree-deciduous"></span>
             TinyApp!
         </a>
-        <ul class="nav navbar-nav">
-            <li><a href="/urls">Home</a></li>
+
+<!--        <ul class="nav navbar-nav"> -->
+<!--            <li><a href="/urls">Home</a></li> -->
 <!--            <li><a href="/about">About</a></li>  -->
-        </ul>
+<!--        </ul> -->
     </div>
-    <% if (username) { %>
-        <div>
-            <p>Welcome, <%= username %> !</p>
-            <form action="/logout" method="POST"><button name="button">Logout</button></form></td>
-        </div>
+ <%if (!username) { %>
+    <form action="/login" method="POST">
+        <button type="submit"><a href="/register">Register</a></button>
+        <button type="submit"><a href="/login">Login</a></button>
+    </form>
     <% } else { %>
         <div>
-            <form action="/login" method="POST">
-                <label for="username-field">Username:</label>
-                <input id="username-field" name="username">
-            </form>
+            <p>Welcome, <%= username.email %> !</p>
         </div>
+        <div id="navbar-mylinks-logout">
+        <button type="button" name="button"><a href="/urls">My links</a></button>
+      <form action="/logout" method="POST">
+        <button type="submit">Logout</button>
+      </form>
+    </div>
     <% } %>
 </div>
 </nav>

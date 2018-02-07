@@ -13,28 +13,6 @@
 <!--            <li><a href="/about">About</a></li>  -->
 <!--        </ul> -->
     </div>
-<<<<<<< HEAD
-    <% if (username) { %>
-        <div>
-            <p>Welcome, <%= username %> !</p>
-            <form action="/logout" method="POST"><button name="button">Logout</button></form></td>
-        </div>
-    <% } else { %>
-        <div>
-            <form action="/login" method="POST">
-                <label for="username-field">Username:</label>
-                <input id="username-field" name="username">
-            </form>
-        </div>
-    <% } %>
-
-
-
-
-
-
-
-=======
  <%if (!username) { %>
     <form action="/login" method="POST">
         <button type="submit"><a href="/register">Register</a></button>
@@ -51,6 +29,5 @@
       </form>
     </div>
     <% } %>
->>>>>>> feature/user-registration
 </div>
 </nav>

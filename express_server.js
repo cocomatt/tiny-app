@@ -1,21 +1,9 @@
 const express = require("express");
 const app = express();
-<<<<<<< HEAD
-
-const cookieParser = require('cookie-parser');
-
-=======
->>>>>>> feature/user-registration
 const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
-<<<<<<< HEAD
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
-
-=======
 //const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
->>>>>>> feature/user-registration
 
 app.set("view engine", "ejs");  //app.set vs app.use??
 app.use(bodyParser.urlencoded({extended: true}));
@@ -32,8 +20,6 @@ const urlDatabase = {
   "5yT2W9": "http://www.economist.com"
 };
 
-<<<<<<< HEAD
-=======
 const users = {
   "userRandomID": {
     id: "userRandomID",
@@ -47,7 +33,6 @@ const users = {
   }
 };
 
->>>>>>> feature/user-registration
 let templateVars = {
   urlDatabase: urlDatabase,
   username: null
@@ -95,17 +80,6 @@ function generateRandomString() {
 }
 
 app.get("/", (req, res) => {
-<<<<<<< HEAD
-  console.log('Cookies: ', req.cookies);
-  res.redirect("urls");
-});
-
-app.post("/login", (req, res) => {
-  //const username = req.body.username;
-  res.cookie('username', req.body.username);
-  //console.log('Cookies: ', res.cookie);
-  res.redirect("/urls");
-=======
   let templateVars = { urlDatabase: urlDatabase, username: users[req.session.user_id]};
   if (userChecker(req.session.user_id)) {
     res.render('urls_index', templateVars);
@@ -117,7 +91,6 @@ app.get("/register", (req, res) => {
   if (doesUserEmailExist(req.session.user_id)) {
     res.redirect('/');
   } res.render('register');
->>>>>>> feature/user-registration
 });
 
 app.post("/register", (req, res) => {
@@ -171,11 +144,6 @@ app.post("/logout", (req, res) => {
 
 //Reads URL database
 app.get("/urls", (req, res) => {
-<<<<<<< HEAD
-  templateVars.username = req.cookies["username"] || null;
-  console.log(req.cookies["username"]);
-  res.render("urls_index", templateVars);
-=======
   console.log('req.session.user_id: ', req.session.user_id);
   if (userChecker(req.session.user_id)) {
     let templateVars = {urlDatabase: urlDatabase, username: users[req.session.user_id]};
@@ -184,22 +152,16 @@ app.get("/urls", (req, res) => {
   } else {
     res.status(401).send('Error: 401: You are not authorized, Please <a href="/"> Login </a>');
   }
->>>>>>> feature/user-registration
 });
 
 //Reads new URL submission page
 app.get("/urls/new", (req, res) => {
-<<<<<<< HEAD
-  templateVars.username = req.cookies["username"] || null;
-  res.render("urls_new", templateVars);
-=======
   if (userChecker(req.session.user_id)) {
     let templateVars = {urlDatabase: urlDatabase, username: users[req.session.user_id]};
     res.render("urls_new", templateVars);
   } else {
     res.status(401).send('Error: 401: You are not authorized, Please <a href="/"> Login </a>');
   }
->>>>>>> feature/user-registration
 });
 
 //Reads new URL page
@@ -207,19 +169,10 @@ app.get("/urls/:id", (req, res) => {
   let templateVars = {urlDatabase: urlDatabase, username: users[req.session.user_id]};
   let shortUrl = req.params.id;
   let longUrl = urlDatabase[shortUrl];
-<<<<<<< HEAD
-  templateVars.username = req.cookies["username"] || null;
-=======
->>>>>>> feature/user-registration
   templateVars.shortUrl = shortUrl;
   templateVars.longUrl = longUrl;
   console.log("This is what app.get for urls/:id gives the following for urlDatabase[req.params.id]: " + urlDatabase[req.params.id] + "shortUrl: " + req.params.id);
   res.render("urls_show", templateVars);
-<<<<<<< HEAD
-///////////////////////// templateVars.shortUrl = req.params.id
-
-=======
->>>>>>> feature/user-registration
 });
 
 //"Posts" deletion of short URL and log URL
@@ -259,11 +212,6 @@ app.post("/urls/:id", (req, res) => {
 app.get("/u/:shortUrl", (req, res) => {
   const longUrl = urlDatabase[req.params.shortUrl];
   res.redirect(longUrl);
-});
-
-app.post("/logout", (req, res) => {
-  res.clearCookie('username')
-  res.redirect("/urls");
 });
 
 app.get("/hello", (req, res) => {

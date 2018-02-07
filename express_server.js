@@ -1,16 +1,29 @@
 const express = require("express");
 const app = express();
+<<<<<<< HEAD
 
 const cookieParser = require('cookie-parser');
 
+=======
+>>>>>>> feature/user-registration
 const PORT = process.env.PORT || 8080;
-
 const bodyParser = require("body-parser");
+<<<<<<< HEAD
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
+=======
+//const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
+>>>>>>> feature/user-registration
 
 app.set("view engine", "ejs");  //app.set vs app.use??
+app.use(bodyParser.urlencoded({extended: true}));
+//app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: [process.env.SECRET_KEY || 'dev']
+}));
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -19,15 +32,59 @@ const urlDatabase = {
   "5yT2W9": "http://www.economist.com"
 };
 
+<<<<<<< HEAD
+=======
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+};
+
+>>>>>>> feature/user-registration
 let templateVars = {
   urlDatabase: urlDatabase,
-  //shortUrl: shortUrls(urlDatabase)
+  username: null
+};
+
+console.log('templateVars:', templateVars);
+console.log('user:', users);
+
+function doesUserEmailExist(email) {
+  for (let user in users) {
+    //console.log('users[user]["email"]: ', users[user]['email']);
+    if (users[user]['email'] === email) {
+    //console.log('doesUserEmailExist: ', email);
+    return true;
+    }
+  }
+  false;
 }
 
-//console.log("urlDatabase:", urlDatabase)
-console.log("@#@#@# templateVars:", templateVars);
+function isUserPasswordValid(password) {
+  for (let user in users) {
+    console.log('users[user]["password"]: ', users[user]['password']);
+    if (users[user]['password'] === password) {
+    console.log('isUserPasswordValid: ', password);
+    return true;
+    }
+  }
+  false;
+}
 
-
+const userChecker = (currentUser) => {
+  for (let user in users) {
+    if (user === currentUser) {
+      return true;
+    }
+  } return false;
+};
 
 function generateRandomString() {
   let randomString = "";
@@ -38,6 +95,7 @@ function generateRandomString() {
 }
 
 app.get("/", (req, res) => {
+<<<<<<< HEAD
   console.log('Cookies: ', req.cookies);
   res.redirect("urls");
 });
@@ -47,33 +105,121 @@ app.post("/login", (req, res) => {
   res.cookie('username', req.body.username);
   //console.log('Cookies: ', res.cookie);
   res.redirect("/urls");
+=======
+  let templateVars = { urlDatabase: urlDatabase, username: users[req.session.user_id]};
+  if (userChecker(req.session.user_id)) {
+    res.render('urls_index', templateVars);
+  } else {
+    res.render('index', templateVars);
+  }
+});
+app.get("/register", (req, res) => {
+  if (doesUserEmailExist(req.session.user_id)) {
+    res.redirect('/');
+  } res.render('register');
+>>>>>>> feature/user-registration
 });
 
+app.post("/register", (req, res) => {
+  console.log("Post parameters ", req.body);
+  if ((req.body.email === '') || (req.body.password === ''))
+    return res.status(400).send("Please enter a valid email and/or password");
+  else if (doesUserEmailExist(req.body.email) === false)
+    return res.status(400).send("User already exists!");
+  else {
+    let newUserKey = generateRandomString();
+    console.log('newUserKey: ', newUserKey);
+    users[newUserKey] = {};
+    users[newUserKey].id = newUserKey;
+    users[newUserKey].email = req.body.email;
+    users[newUserKey].password = req.body.password;
+    console.log('user[newUserKey] is: ', users[newUserKey]);
+    console.log('new users object is now: ', users);
+    res.cookie('user_id', newUserKey);
+    req.session['user_id'] = newUserKey;
+    //console.log('Cookies: ', res.cookie);
+    console.log("users: ", users);
+    return res.redirect("/");
+  }
+});
+
+app.get("/login", (req, res) => {
+let userId = req.session.user_id;
+  if (userId in users) {
+    res.redirect("/urls");
+  } else {
+    res.render("login");
+  }
+});
+
+app.post("/login", (req, res) => {
+  // email-password checker
+  for (user in users) {
+    if (users[user].email === req.body.email && users[user].password ===req.body.password) {
+      req.session.user_id = users[user].id;
+      res.redirect('/');
+      return;
+    }
+  }
+  res.status(403).send('Username and/or Password do not match');
+});
+
+app.post("/logout", (req, res) => {
+  res.clearCookie('session');
+  res.redirect("/login");
+});
 
 //Reads URL database
 app.get("/urls", (req, res) => {
+<<<<<<< HEAD
   templateVars.username = req.cookies["username"] || null;
   console.log(req.cookies["username"]);
   res.render("urls_index", templateVars);
+=======
+  console.log('req.session.user_id: ', req.session.user_id);
+  if (userChecker(req.session.user_id)) {
+    let templateVars = {urlDatabase: urlDatabase, username: users[req.session.user_id]};
+    console.log('new templateVars: ', templateVars);
+    res.render("urls_index", templateVars);
+  } else {
+    res.status(401).send('Error: 401: You are not authorized, Please <a href="/"> Login </a>');
+  }
+>>>>>>> feature/user-registration
 });
 
 //Reads new URL submission page
 app.get("/urls/new", (req, res) => {
+<<<<<<< HEAD
   templateVars.username = req.cookies["username"] || null;
   res.render("urls_new", templateVars);
+=======
+  if (userChecker(req.session.user_id)) {
+    let templateVars = {urlDatabase: urlDatabase, username: users[req.session.user_id]};
+    res.render("urls_new", templateVars);
+  } else {
+    res.status(401).send('Error: 401: You are not authorized, Please <a href="/"> Login </a>');
+  }
+>>>>>>> feature/user-registration
 });
 
 //Reads new URL page
 app.get("/urls/:id", (req, res) => {
+  let templateVars = {urlDatabase: urlDatabase, username: users[req.session.user_id]};
   let shortUrl = req.params.id;
   let longUrl = urlDatabase[shortUrl];
+<<<<<<< HEAD
   templateVars.username = req.cookies["username"] || null;
+=======
+>>>>>>> feature/user-registration
   templateVars.shortUrl = shortUrl;
   templateVars.longUrl = longUrl;
   console.log("This is what app.get for urls/:id gives the following for urlDatabase[req.params.id]: " + urlDatabase[req.params.id] + "shortUrl: " + req.params.id);
   res.render("urls_show", templateVars);
+<<<<<<< HEAD
 ///////////////////////// templateVars.shortUrl = req.params.id
 
+=======
+>>>>>>> feature/user-registration
 });
 
 //"Posts" deletion of short URL and log URL
@@ -85,7 +231,7 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
- //posts new URL to urlDatabase and redirects to /urls/"shortUrl"
+//posts new URL to urlDatabase and redirects to /urls/"shortUrl"
 app.post("/urls", (req, res) => {
   console.log("Post parameters", req.body);  // debug statement to see POST parameters
   //let longUrl = req.body.longUrl;

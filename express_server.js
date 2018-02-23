@@ -43,12 +43,14 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: "$2a$10$cXT5hRtAOdvit8AY70M1Y.VAIFh/yisYyNoOglHebZTY9yBy4qEvK"
+    //password: "purple-monkey-dinosaur"
   },
  "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: "$2a$10$cQNCyw/YZCKRHsCnHENYLu1o7FOktJg6QsLGtxGyCQ4uyoZpq3jqG"
+    //password: "dishwasher-funk"
   }
 };
 
@@ -77,16 +79,16 @@ function doesUserEmailExist(email) {
   false;
 }
 
-function isUserPasswordValid(password) {
-  for (let user in users) {
-    console.log('users[user]["password"]: ', users[user]['password']);
-    if (users[user]['password'] === password) {
-    console.log('isUserPasswordValid: ', password);
-    return true;
-    }
-  }
-  false;
-}
+//function isUserPasswordValid(password) {
+//  for (let user in users) {
+//    console.log('users[user]["password"]: ', users[user]['password']);
+//    if (users[user]['password'] === password) {
+//    console.log('isUserPasswordValid: ', password);
+//    return true;
+//    }
+//  }
+//  false;
+//}
 
 const userChecker = (currentUser) => {
   for (let user in users) {
@@ -146,13 +148,13 @@ app.post("/register", (req, res) => {
     users[newUserKey] = {
       id: newUserKey,
       email: req.body.email,
-      password: req.body.password
+      password: bcrypt.hashSync(req.body.password, 10)
     }
     console.log('user[newUserKey] is: ', users[newUserKey]);
     console.log('new users object is now: ', users);
+    console.log('new user password: ', users[newUserKey]['password']);
     res.cookie('userId', newUserKey);
     req.session['userId'] = newUserKey;
-    //console.log('Cookies: ', res.cookie);
     console.log("users: ", users);
     urlDatabase[newUserKey] = {};
     res.redirect("/urls");
@@ -178,7 +180,7 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   // email-password checker
   for (user in users) {
-    if (users[user].email === req.body.email && users[user].password ===req.body.password) {
+    if (users[user].email === req.body.email && bcrypt.compareSync(req.body.password, users[user].password)) {
       req.session.userId = users[user].id;
       res.redirect('/urls');
       return;

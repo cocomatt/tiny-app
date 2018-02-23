@@ -8,6 +8,8 @@ const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
 //const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 app.set("view engine", "ejs");  //app.set vs app.use??
 app.use(bodyParser.urlencoded({extended: true}));
@@ -141,10 +143,11 @@ app.post("/register", (req, res) => {
   else {
     let newUserKey = generateRandomString();
     console.log('newUserKey: ', newUserKey);
-    users[newUserKey] = {};
-    users[newUserKey].id = newUserKey;
-    users[newUserKey].email = req.body.email;
-    users[newUserKey].password = req.body.password;
+    users[newUserKey] = {
+      id: newUserKey,
+      email: req.body.email,
+      password: req.body.password
+    }
     console.log('user[newUserKey] is: ', users[newUserKey]);
     console.log('new users object is now: ', users);
     res.cookie('userId', newUserKey);

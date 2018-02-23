@@ -6,17 +6,16 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
-//const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
-app.set("view engine", "ejs");  //app.set vs app.use??
+app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
-//app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
-  keys: [process.env.SECRET_KEY || 'dev']
+  keys: [process.env.SECRET_KEY || 'dev'],
+  maxAge: 365 * 24 * 60 * 60 * 1000 // 1 year
 }));
 
 const urlDatabase = {
@@ -54,12 +53,6 @@ const users = {
   }
 };
 
-//let templateVars = {
-//  urlDatabase: urlDatabase,
-//  username: null
-//};
-
-//console.log('templateVars:', templateVars);
 console.log('urlDatabase.userRandomID: ', urlDatabase.userRandomID);
 console.log('urlDatabase.user2RandomID: ', urlDatabase.user2RandomID);
 console.log('users:', users);
@@ -70,25 +63,12 @@ console.log('users:', users);
 
 function doesUserEmailExist(email) {
   for (let user in users) {
-    //console.log('users[user]["email"]: ', users[user]['email']);
     if (users[user]['email'] === email) {
-    //console.log('doesUserEmailExist: ', email);
     return true;
     }
   }
   false;
 }
-
-//function isUserPasswordValid(password) {
-//  for (let user in users) {
-//    console.log('users[user]["password"]: ', users[user]['password']);
-//    if (users[user]['password'] === password) {
-//    console.log('isUserPasswordValid: ', password);
-//    return true;
-//    }
-//  }
-//  false;
-//}
 
 const userChecker = (currentUser) => {
   for (let user in users) {
@@ -97,7 +77,6 @@ const userChecker = (currentUser) => {
     }
   } return false;
 };
-
 
 function generateRandomString() {
   let randomString = "";
@@ -150,12 +129,8 @@ app.post("/register", (req, res) => {
       email: req.body.email,
       password: bcrypt.hashSync(req.body.password, 10)
     }
-    console.log('user[newUserKey] is: ', users[newUserKey]);
-    console.log('new users object is now: ', users);
-    console.log('new user password: ', users[newUserKey]['password']);
     res.cookie('userId', newUserKey);
     req.session['userId'] = newUserKey;
-    console.log("users: ", users);
     urlDatabase[newUserKey] = {};
     res.redirect("/urls");
   }
@@ -178,7 +153,6 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  // email-password checker
   for (user in users) {
     if (users[user].email === req.body.email && bcrypt.compareSync(req.body.password, users[user].password)) {
       req.session.userId = users[user].id;
@@ -196,13 +170,10 @@ app.post("/logout", (req, res) => {
 
 //Reads URL database
 app.get("/urls", (req, res) => {
-  console.log('req.session.userId: ', req.session.userId);
   const userId = req.session.userId;
   if (userChecker(req.session.userId)) {
     const userId = req.session.userId;
-    console.log('userId: ', userId);
     const user = users[userId];
-    console.log('urlDatabase[user]: ', urlDatabase[userId]);
     let templateVars = {
       urls: urlDatabase[userId],
       user: users[userId]
@@ -240,7 +211,6 @@ app.get("/urls/:id", (req, res) => {
     };
     res.render("urls_show", templateVars);
   } else {
-    //if not logged in, redirect to login page
     res.redirect("/login");
   }
 });
@@ -249,62 +219,46 @@ app.get("/urls/:id", (req, res) => {
 app.post("/urls", (req, res) => {
   if (userChecker(req.session.userId)) {
     const userId = req.session.userId;
-    console.log("Post parameters", req.body.longUrl);  // debug statement to see POST parameters
     const longUrl = req.body.longUrl;
-    console.log("URLS Long URL is ", req.body.longUrl);
     let shortUrl = generateRandomString();
-    console.log("URLS Short URL is ", shortUrl);
     urlDatabase[userId][shortUrl] = {longUrl: longUrl};
-    console.log("URLS updated URL Database?", urlDatabase[userId]);
     res.redirect(`/urls/${shortUrl}`);
-  }
+  } else res.redirect("/login");
 });
 
 //"Posts" deletion of short URL and log URL
 app.post("/urls/:id/delete", (req, res) => {
-  console.log('req.session.userId: ', req.session.userId);
   if (userChecker(req.session.userId)) {
     const userId = req.session.userId;
-    console.log("req.params:", req.params);
-    console.log("urlDatabase[userId][req.params.id] to be deleted:", urlDatabase[userId][req.params.id]);
     delete urlDatabase[userId][req.params.id];
-    console.log("urlDatabase:", urlDatabase);
     res.redirect("/urls");
-  }
+  } else res.redirect("login");
 });
 
 //changes long URL based on user input (but short URL stays the same)
 app.post("/urls/:id", (req, res) => {
-  console.log('req.session.userId: ', req.session.userId);
   if (userChecker(req.session.userId)) {
     let updatedLongUrl = "";
     const userId = req.session.userId;
     const longUrl = urlDatabase[userId][req.params.id];
-    console.log("changing the long URL for this req.params:", req.params.id);
-    console.log("urlDatabase[req.params.id] to be changed:", urlDatabase[userId][req.params.id]);
     updatedLongUrl = req.body.longUrl;
-    console.log("updatedLongUrl: ", updatedLongUrl);
     urlDatabase[userId][req.params.id] = {longUrl: updatedLongUrl};
-    console.log("urlDatabase[userId]:", urlDatabase[userId]);
     res.redirect("/urls");
-  }
+  } else res.redirect("login");
 });
 
 //redirects client to longUrl
 app.get("/u/:shortUrl", (req, res) => {
-
-  //console.log(urlDatabase.userId);
-  for (key in urlDatabase) {
-    //shortUrl = urlDatabase[key];
-    for (shortUrl in urlDatabase[key]) {
-      console.log('ShortUrl: ', shortUrl);
-      if (shortUrl == req.params.shortUrl) {
-        console.log('req.params.shortUrl: ', req.params.shortUrl)
-        longUrl = urlDatabase[key][req.params.shortUrl]['longUrl'];
+  if (userChecker(req.session.userId)) {
+    for (key in urlDatabase) {
+      for (shortUrl in urlDatabase[key]) {
+        if (shortUrl == req.params.shortUrl) {
+          longUrl = urlDatabase[key][req.params.shortUrl]['longUrl'];
+        }
       }
     }
-  }
-  res.redirect(longUrl);
+    res.redirect(longUrl);
+  } else res.redirect("login");
 });
 
 app.listen(PORT, () => {

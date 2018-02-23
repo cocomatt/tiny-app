@@ -16,10 +16,10 @@
         </tr>
       </thead>
       <tbody>
-        <% for (let key in urlDatabase) { %>
+        <% for (key in urls) { %>
         <tr>
           <td><a href="/u/<%= key %>"><%= key %></a></td>
-          <td><%= urlDatabase[key] %></td>
+          <td><%= urls[key]['longUrl'] %></td>
           <td><form method="POST" action="/urls/<%= key %>/delete"><a href="/urls/<%= key %>">Edit</a><button name="button">Delete</button></form></td>
         </tr>
         <% } %>

@@ -1,3 +1,7 @@
+// ================================================================
+// MODULE IMPORTS AND GLOBAL VARIABLE DECLARATIONS
+// ================================================================
+
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -14,10 +18,23 @@ app.use(cookieSession({
 }));
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
-  "4g8Dr2": "http://www.nationalgeographic.com",
-  "5yT2W9": "http://www.economist.com"
+  "userRandomID": {
+    "b2xVn2": {
+      longUrl: "http://www.lighthouselabs.ca",
+    },
+    "9sm5xK": {
+      longUrl: "http://www.google.com",
+    }
+  },
+
+  "user2RandomID": {
+    "4g8Dr2": {
+      longUrl: "http://www.nationalgeographic.com",
+    },
+    "5yT2W9": {
+      longUrl: "http://www.economist.com",
+    }
+  }
 };
 
 const users = {
@@ -33,13 +50,19 @@ const users = {
   }
 };
 
-let templateVars = {
-  urlDatabase: urlDatabase,
-  username: null
-};
+//let templateVars = {
+//  urlDatabase: urlDatabase,
+//  username: null
+//};
 
-console.log('templateVars:', templateVars);
-console.log('user:', users);
+//console.log('templateVars:', templateVars);
+console.log('urlDatabase.userRandomID: ', urlDatabase.userRandomID);
+console.log('urlDatabase.user2RandomID: ', urlDatabase.user2RandomID);
+console.log('users:', users);
+
+// ================================================================
+// FUNCTION DECLARATIONS
+// ================================================================
 
 function doesUserEmailExist(email) {
   for (let user in users) {
@@ -71,6 +94,7 @@ const userChecker = (currentUser) => {
   } return false;
 };
 
+
 function generateRandomString() {
   let randomString = "";
   const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -79,18 +103,33 @@ function generateRandomString() {
   return randomString;
 }
 
+// ================================================================
+// ROUTE HANDLING
+// ================================================================
+
 app.get("/", (req, res) => {
-  let templateVars = { urlDatabase: urlDatabase, username: users[req.session.user_id]};
-  if (userChecker(req.session.user_id)) {
-    res.render('urls_index', templateVars);
+  let userId = req.session.userId;
+  if (userChecker(req.session.userId)) {
+    res.redirect('urls_index');
   } else {
-    res.render('index', templateVars);
+    res.redirect('login');
   }
 });
+
 app.get("/register", (req, res) => {
-  if (doesUserEmailExist(req.session.user_id)) {
-    res.redirect('/');
-  } res.render('register');
+  let userId = req.session.userId;
+  let errorCode = req.session.errorCode;
+  let userObject = {
+    id: null,
+    email: null,
+    password: null
+  };
+  if (doesUserEmailExist(req.session.userId)) {
+    userObject = users[userId];
+    let templateVars = {urls: urlDatabase[userId], user: userObject};
+    res.redirect("login");
+  }
+  res.render("register");
 });
 
 app.post("/register", (req, res) => {
@@ -108,16 +147,24 @@ app.post("/register", (req, res) => {
     users[newUserKey].password = req.body.password;
     console.log('user[newUserKey] is: ', users[newUserKey]);
     console.log('new users object is now: ', users);
-    res.cookie('user_id', newUserKey);
-    req.session['user_id'] = newUserKey;
+    res.cookie('userId', newUserKey);
+    req.session['userId'] = newUserKey;
     //console.log('Cookies: ', res.cookie);
     console.log("users: ", users);
-    return res.redirect("/");
+    urlDatabase[newUserKey] = {};
+    res.redirect("/urls");
   }
 });
 
 app.get("/login", (req, res) => {
-let userId = req.session.user_id;
+  let userId = req.session.userId
+  let userObject = {
+    id: null,
+    email: null,
+    password: null
+  };
+  const templateVars = {urls: urlDatabase[userId], user: userObject};
+
   if (userId in users) {
     res.redirect("/urls");
   } else {
@@ -129,12 +176,12 @@ app.post("/login", (req, res) => {
   // email-password checker
   for (user in users) {
     if (users[user].email === req.body.email && users[user].password ===req.body.password) {
-      req.session.user_id = users[user].id;
-      res.redirect('/');
+      req.session.userId = users[user].id;
+      res.redirect('/urls');
       return;
     }
   }
-  res.status(403).send('Username and/or Password do not match');
+  res.status(403).send('Username and/or Password do not match. Please try <a href="/"> again </a>');
 });
 
 app.post("/logout", (req, res) => {
@@ -144,78 +191,115 @@ app.post("/logout", (req, res) => {
 
 //Reads URL database
 app.get("/urls", (req, res) => {
-  console.log('req.session.user_id: ', req.session.user_id);
-  if (userChecker(req.session.user_id)) {
-    let templateVars = {urlDatabase: urlDatabase, username: users[req.session.user_id]};
-    console.log('new templateVars: ', templateVars);
+  console.log('req.session.userId: ', req.session.userId);
+  const userId = req.session.userId;
+  if (userChecker(req.session.userId)) {
+    const userId = req.session.userId;
+    console.log('userId: ', userId);
+    const user = users[userId];
+    console.log('urlDatabase[user]: ', urlDatabase[userId]);
+    let templateVars = {
+      urls: urlDatabase[userId],
+      user: users[userId]
+    };
     res.render("urls_index", templateVars);
   } else {
-    res.status(401).send('Error: 401: You are not authorized, Please <a href="/"> Login </a>');
+    res.status(401).send('Error 401: You are not authorized, Please <a href="/"> Login </a>');
   }
 });
 
 //Reads new URL submission page
 app.get("/urls/new", (req, res) => {
-  if (userChecker(req.session.user_id)) {
-    let templateVars = {urlDatabase: urlDatabase, username: users[req.session.user_id]};
+  if (userChecker(req.session.userId)) {
+    const userId = req.session.userId;
+    let templateVars = {
+      urls: urlDatabase[userId],
+      user: users[userId]
+    }
     res.render("urls_new", templateVars);
   } else {
-    res.status(401).send('Error: 401: You are not authorized, Please <a href="/"> Login </a>');
+    res.status(401).send('Error: 401: You are not authorized, Please <a href="/login"> Login </a>');
   }
 });
 
 //Reads new URL page
 app.get("/urls/:id", (req, res) => {
-  let templateVars = {urlDatabase: urlDatabase, username: users[req.session.user_id]};
-  let shortUrl = req.params.id;
-  let longUrl = urlDatabase[shortUrl];
-  templateVars.shortUrl = shortUrl;
-  templateVars.longUrl = longUrl;
-  console.log("This is what app.get for urls/:id gives the following for urlDatabase[req.params.id]: " + urlDatabase[req.params.id] + "shortUrl: " + req.params.id);
-  res.render("urls_show", templateVars);
-});
-
-//"Posts" deletion of short URL and log URL
-app.post("/urls/:id/delete", (req, res) => {
-  console.log("req.params:", req.params);
-  console.log("urlDatabase[req.params.id] to be deleted:", urlDatabase[req.params.id]);
-  delete urlDatabase[req.params.id];
-  console.log("urlDatabase:", urlDatabase);
-  res.redirect("/urls");
+  const userId = req.session.userId;
+  if (userChecker(req.session.userId)) {
+    const userId = req.session.userId;
+    let templateVars = {
+      urls: urlDatabase[userId],
+      user: users[userId],
+      shortUrl: req.params.id,
+      longUrl: urlDatabase[userId][req.params.id]
+    };
+    res.render("urls_show", templateVars);
+  } else {
+    //if not logged in, redirect to login page
+    res.redirect("/login");
+  }
 });
 
 //posts new URL to urlDatabase and redirects to /urls/"shortUrl"
 app.post("/urls", (req, res) => {
-  console.log("Post parameters", req.body);  // debug statement to see POST parameters
-  //let longUrl = req.body.longUrl;
-  console.log("URLS Long URL is ", req.body.longUrl);
-  let shortUrl = generateRandomString();
-  console.log("URLS Short URL is ", shortUrl);
-  //res.send("Ok");         // Respond with 'Ok' (we will replace this)
-  urlDatabase[shortUrl] = req.body.longUrl;
-  console.log("URLS updated URL Database?", urlDatabase);
-  //console.log(updatedLongUrl);
-  res.redirect(`/urls/${shortUrl}`);
+  if (userChecker(req.session.userId)) {
+    const userId = req.session.userId;
+    console.log("Post parameters", req.body.longUrl);  // debug statement to see POST parameters
+    const longUrl = req.body.longUrl;
+    console.log("URLS Long URL is ", req.body.longUrl);
+    let shortUrl = generateRandomString();
+    console.log("URLS Short URL is ", shortUrl);
+    urlDatabase[userId][shortUrl] = {longUrl: longUrl};
+    console.log("URLS updated URL Database?", urlDatabase[userId]);
+    res.redirect(`/urls/${shortUrl}`);
+  }
+});
+
+//"Posts" deletion of short URL and log URL
+app.post("/urls/:id/delete", (req, res) => {
+  console.log('req.session.userId: ', req.session.userId);
+  if (userChecker(req.session.userId)) {
+    const userId = req.session.userId;
+    console.log("req.params:", req.params);
+    console.log("urlDatabase[userId][req.params.id] to be deleted:", urlDatabase[userId][req.params.id]);
+    delete urlDatabase[userId][req.params.id];
+    console.log("urlDatabase:", urlDatabase);
+    res.redirect("/urls");
+  }
 });
 
 //changes long URL based on user input (but short URL stays the same)
 app.post("/urls/:id", (req, res) => {
-  console.log("changing the long URL for this req.params:", req.params);
-  console.log("urlDatabase[req.params.id] to be changed:", urlDatabase[req.params.id]);
-  console.log("updated longUrl:", req.body.longUrl);
-  urlDatabase[req.params.id] = req.body.longUrl;
-  console.log("urlDatabase:", urlDatabase);
-  res.redirect("/urls");
+  console.log('req.session.userId: ', req.session.userId);
+  if (userChecker(req.session.userId)) {
+    let updatedLongUrl = "";
+    const userId = req.session.userId;
+    const longUrl = urlDatabase[userId][req.params.id];
+    console.log("changing the long URL for this req.params:", req.params.id);
+    console.log("urlDatabase[req.params.id] to be changed:", urlDatabase[userId][req.params.id]);
+    updatedLongUrl = req.body.longUrl;
+    console.log("updatedLongUrl: ", updatedLongUrl);
+    urlDatabase[userId][req.params.id] = {longUrl: updatedLongUrl};
+    console.log("urlDatabase[userId]:", urlDatabase[userId]);
+    res.redirect("/urls");
+  }
 });
 
 //redirects client to longUrl
 app.get("/u/:shortUrl", (req, res) => {
-  const longUrl = urlDatabase[req.params.shortUrl];
-  res.redirect(longUrl);
-});
 
-app.get("/hello", (req, res) => {
-  res.end("<html><body>Hello <b>World</b></body></html>\n");
+  //console.log(urlDatabase.userId);
+  for (key in urlDatabase) {
+    //shortUrl = urlDatabase[key];
+    for (shortUrl in urlDatabase[key]) {
+      console.log('ShortUrl: ', shortUrl);
+      if (shortUrl == req.params.shortUrl) {
+        console.log('req.params.shortUrl: ', req.params.shortUrl)
+        longUrl = urlDatabase[key][req.params.shortUrl]['longUrl'];
+      }
+    }
+  }
+  res.redirect(longUrl);
 });
 
 app.listen(PORT, () => {

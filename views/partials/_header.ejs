@@ -7,20 +7,15 @@
             <span class="glyphicon glyphicon glyphicon-tree-deciduous"></span>
             TinyApp!
         </a>
-
-<!--        <ul class="nav navbar-nav"> -->
-<!--            <li><a href="/urls">Home</a></li> -->
-<!--            <li><a href="/about">About</a></li>  -->
-<!--        </ul> -->
     </div>
- <%if (!username) { %>
+ <%if (!user.id) { %>
     <form action="/login" method="POST">
         <button type="submit"><a href="/register">Register</a></button>
         <button type="submit"><a href="/login">Login</a></button>
     </form>
     <% } else { %>
         <div>
-            <p>Welcome, <%= username.email %> !</p>
+            <p>Welcome, <%= user.email %>!</p>
         </div>
         <div id="navbar-mylinks-logout">
         <button type="button" name="button"><a href="/urls">My links</a></button>

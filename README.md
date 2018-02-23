@@ -164,3 +164,7 @@ so _that_ I can read interesting content.
 
   - Install all dependencies (using `the npm install` command).
   - Run the development web server using the `node express_server.js` command.
+
+  ## Screenshot
+
+  !["Screenshot of URLs page"](https://github.com/cocomatt/tiny-app/blob/master/docs/URL-page.png)
